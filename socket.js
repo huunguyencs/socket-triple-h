@@ -5,9 +5,9 @@ let users = [];
 const SocketServer = socket => {
   //connect
   socket.on('joinUser', data => {
-    console.log('SOCKET POSITION:', data.position);
+    // console.log('SOCKET POSITION:', data.position);
     if (!data.position) {
-      console.log('SOCKET CONNECT:', socket.handshake.headers);
+      // console.log('SOCKET CONNECT:', socket.handshake.headers);
       if (data.ipv4) {
         data.position = ip2position(data.ipv4);
       } else {
@@ -107,16 +107,20 @@ const SocketServer = socket => {
 
   //add message
   socket.on('addMessage', data => {
-    // console.log(data.user);
-    const user = users.filter(user => user.id === data.msg.recipient);
-    if (user.length > 0) {
-      socket.to(user[0].socketId).emit('addMessageToClient', data);
+    // console.log('data',data.recipients);
+    // console.log('users',users);
+    const clients = users.filter(user => data.recipients.includes(user.id));
+    // console.log('clients',clients);
+    if (clients.length > 0) {
+      clients.forEach(user => {
+        socket.to(user.socketId).emit('addMessageToClient', data);
+      });
     }
   });
 
   //help
   socket.on('createHelp', data => {
-    // console.log(data);
+    console.log(data);
     const clients = users.filter(
       user =>
         distance(user.position, {
@@ -140,6 +144,7 @@ const SocketServer = socket => {
           latitude: data.position[1]
         }) < 5000
     );
+    console.log('clients', clients);
     if (clients.length > 0) {
       clients.forEach(user => {
         socket.to(user.socketId).emit('updateHelpToClient', data);
