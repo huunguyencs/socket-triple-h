@@ -5,7 +5,7 @@ let users = [];
 const SocketServer = socket => {
   //connect
   socket.on('joinUser', data => {
-    // console.log('SOCKET POSITION:', data.position);
+    console.log('SOCKET POSITION:', data.position);
     if (!data.position) {
       // console.log('SOCKET CONNECT:', socket.handshake.headers);
       if (data.ipv4) {
@@ -121,11 +121,13 @@ const SocketServer = socket => {
   //help
   socket.on('createHelp', data => {
     console.log(data);
+    const { position } = data;
+
     const clients = users.filter(
       user =>
         distance(user.position, {
-          longitude: data.position[0],
-          latitude: data.position[1]
+          longitude: position[0],
+          latitude: position[1]
         }) < 5000
     );
     console.log('CREATE HELP USER RECEIVE:', clients);
@@ -158,6 +160,13 @@ const SocketServer = socket => {
         socket.to(user.socketId).emit('deleteHelpToClient', id);
       });
     }
+  });
+
+  socket.on('positionChange', data => {
+    const { id, position } = data;
+    users = users.map(item =>
+      item.id === id ? { ...item, position: position } : item
+    );
   });
 };
 
